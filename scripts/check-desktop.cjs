@@ -52,10 +52,53 @@ async function check() {
   win.webContents.reload();
   await waitFor(async () => !win.webContents.isLoading() && js("document.getElementById('message')?.textContent === '¡Bienvenido, Miku-sama!'"), 'restaurar perfil');
   assert.equal(await js("document.getElementById('mute').getAttribute('aria-pressed')"), 'true');
+  const submit = async text => {
+    await js(`document.getElementById('command').value = ${JSON.stringify(text)}; document.getElementById('command-form').requestSubmit();`);
+    await waitFor(() => js("!document.getElementById('send-command').disabled"), `orden ${text}`);
+  };
+  for (const expression of loaded.expressions) {
+    await submit(`Expresión ${expression.label}`);
+    await waitFor(() => js(`document.getElementById('miku-art').dataset.expression === ${JSON.stringify(expression.id)}`), `imagen ${expression.id}`);
+    assert.equal(await js("document.getElementById('miku-art').naturalWidth > 0"), true);
+  }
+  await submit('Volumen al 30%');
+  assert.equal((await js('window.miku.load()')).settings.volume, 0.3);
+  await submit('Llámame María José');
+  assert.equal(await js("document.getElementById('message').textContent"), '¡Bienvenido, María José-sama!');
+  await submit('¿Qué hora es?');
+  assert.match(await js("document.getElementById('message').textContent"), /^Son las \d{2}:\d{2}\./);
+  await submit('Di que tengas un lindo día');
+  assert.equal(await js("document.getElementById('message').textContent"), 'que tengas un lindo día');
+  await submit('abre powershell');
+  assert.match(await js("document.getElementById('message').textContent"), /Todavía no entiendo/);
+  await submit('Ayuda');
+  assert.equal(await js("document.getElementById('help').hidden"), false);
+  assert.equal(await js("document.querySelectorAll('.example').length"), loaded.examples.length);
+  await js("document.getElementById('close-help').click()");
+  await submit('Ponte sonrojada');
+  await waitFor(() => js("document.getElementById('miku-art').dataset.expression === 'blush'"), 'última expresión');
+  win.webContents.reload();
+  await waitFor(async () => !win.webContents.isLoading() && js("document.getElementById('miku-art')?.dataset.expression === 'blush'"), 'restaurar expresión');
+  const layout = await js("({top:document.querySelector('.bubble').getBoundingClientRect().top,bottom:document.querySelector('.toolbar').getBoundingClientRect().bottom,height:innerHeight})");
+  assert.ok(layout.top >= 0 && layout.bottom <= layout.height, 'Controles dentro de la ventana');
+  if (process.env.MIKUAI_CAPTURE) {
+    const output = path.resolve(process.env.MIKUAI_CAPTURE);
+    fs.mkdirSync(output, { recursive: true });
+    fs.writeFileSync(path.join(output, 'desktop-v02.png'), (await win.webContents.capturePage()).toPNG());
+  }
+  await submit('Ocúltate');
+  assert.equal(win.isVisible(), false);
+  win.show();
+  // Small screens and a long response must keep the controls accessible.
+  win.setResizable(true);
+  win.setSize(400, 600);
+  await submit(`Di ${'Un saludo muy largo para comprobar el tamaño. '.repeat(3)}`);
+  const small = await js("({top:document.querySelector('.bubble').getBoundingClientRect().top,bottom:document.querySelector('.toolbar').getBoundingClientRect().bottom,height:innerHeight})");
+  assert.ok(small.top >= 0 && small.bottom <= small.height, 'Controles dentro de una pantalla pequeña');
   await js('window.miku.hide()');
   assert.equal(win.isVisible(), false);
   win.show();
   assert.equal(win.isVisible(), true);
-  console.log('Desktop OK: inicio, imagen, IPC aislado, voces, saludo reproducido, guardado, ajustes, recarga, ocultar y mostrar.');
+  console.log('Desktop OK: inicio, voz, siete expresiones, órdenes, ayuda, persistencia, ventana pequeña, ocultar y mostrar.');
 }
 check().then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); });

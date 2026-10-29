@@ -12,6 +12,10 @@ async function main() {
     assert.equal(wav.toString('ascii', 0, 4), 'RIFF');
     assert.equal(wav.toString('ascii', 8, 12), 'WAVE');
     assert.ok(wav.length > 1000, 'El saludo debe contener audio.');
+    const cancelled = engine.synthesize('Esta frase anterior se debe interrumpir antes de hablar.', { voice: '', rate: -3 }).then(() => false, () => true);
+    const latest = await engine.synthesize('Hola de nuevo.', { voice: '', rate: 0 });
+    assert.equal(await cancelled, true, 'Una frase nueva debe cancelar la anterior.');
+    assert.equal(Buffer.from(latest.audio, 'base64').toString('ascii', 0, 4), 'RIFF');
     console.log(`Voz comprobada: ${result.voice}. WAV válido de ${wav.length} bytes. ${voices.length} voces disponibles.`);
   } finally { engine.dispose(); }
 }

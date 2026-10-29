@@ -1,7 +1,7 @@
 {
   "name": "mikuai",
   "productName": "MikuAI",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Tu compañera de escritorio: una primera Miku que te conoce y te da la bienvenida.",
   "main": "src/main.cjs",
   "author": "bastian-alvarez",
@@ -12,7 +12,7 @@
     "test": "node --test",
     "test:voice": "node scripts/check-voice.cjs",
     "test:desktop": "electron scripts/check-desktop.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/core.cjs && node --check src/voice.cjs && node --check src/renderer/app.js",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/core.cjs && node --check src/voice.cjs && node --check src/commands.cjs && node --check src/renderer/app.js",
     "build": "electron-builder --win portable --x64",
     "build:dir": "electron-builder --win dir --x64"
   },

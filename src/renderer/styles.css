@@ -16,17 +16,33 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 h1 { font-size: 23px; line-height: 1.22; font-weight: 650; letter-spacing: -.6px; margin: 13px 0 7px; overflow-wrap: anywhere; }
 .bubble p { margin: 0; font-size: 12px; color: #6b8b8b; line-height: 1.5; }
 .name-row { display: flex; gap: 7px; margin-top: 16px; }
+.command-row { display: flex; gap: 7px; margin-top: 13px; }
+.command-row input { flex: 1; }
+.command-row .primary { font-size: 20px; padding: 6px 13px; }
+h1.long-message { font-size: 19px; }
 input:not([type=range]):not([type=checkbox]), select { color: #21474a; background: #fff; border: 1px solid #cbe4df; border-radius: 10px; padding: 11px; min-width: 0; user-select: text; width: 100%; font-size: 13px; }
 .name-row input { flex: 1; }
 .primary { background: #217f78; color: #fff; padding: 11px 13px; border-radius: 10px; font-size: 12px; font-weight: 650; white-space: nowrap; }
 .primary:hover { background: #176d67; }
 .primary span { margin-left: 5px; color: #9ff0dc; }
-.character { min-height: 100px; height: 410px; width: 340px; position: relative; flex-shrink: 1; -webkit-app-region: drag; cursor: grab; }
+.character { min-height: 90px; height: 360px; width: 340px; position: relative; flex-shrink: 1; -webkit-app-region: drag; cursor: grab; }
 .character img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; padding: 15px 0 10px; animation: float 4s ease-in-out infinite; pointer-events: none; }
 .platform { position: absolute; bottom: 6px; left: 25%; width: 50%; height: 14px; border-radius: 50%; background: #50d8c430; border: 1px solid #63e2d050; box-shadow: 0 0 20px #79eddf25; }
 .speaking .character img { animation: speaking .48s ease-in-out infinite alternate; }
 .speaking .status-dot { animation: pulse .6s ease-in-out infinite alternate; }
-.toolbar { background: #f5fffc; border: 1px solid #c2e9e4; box-shadow: 0 4px 20px #0d5a5a18; border-radius: 19px; display: flex; align-items: center; gap: 4px; padding: 9px 11px 9px 16px; width: 302px; flex-shrink: 0; }
+.toolbar { background: #f5fffc; border: 1px solid #c2e9e4; box-shadow: 0 4px 20px #0d5a5a18; border-radius: 19px; display: flex; align-items: center; gap: 4px; padding: 9px 11px 9px 16px; width: 330px; flex-shrink: 0; }
+.moods { flex-shrink: 0; text-align: center; padding-bottom: 8px; }
+.expression-picker { display: flex; gap: 4px; padding: 5px; background: #f5fffc; border: 1px solid #c2e9e4; border-radius: 15px; }
+.expression-button { width: 39px; height: 30px; border-radius: 9px; background: transparent; color: #658b83; font-size: 15px; font-weight: 600; }
+.expression-button:hover { background: #e1f4ee; }
+.expression-button[aria-pressed=true] { background: #d5efe6; color: #197365; box-shadow: inset 0 0 0 1px #a7d7c6; }
+.mood-caption { display: inline-block; margin-top: 3px; color: #edfff9; font-size: 9px; text-shadow: 0 1px 3px #163d3d, 0 0 3px #163d3d; letter-spacing: .6px; }
+.help-intro { color: #668980; font-size: 12px; line-height: 1.6; }
+.command-examples { display: grid; gap: 7px; }
+.example { background: #eaf7f1; color: #315f57; padding: 10px 12px; border: 1px solid #d0e9dd; text-align: left; border-radius: 10px; }
+.example:hover { background: #d9eee4; }
+.example strong { display: block; font-size: 12px; }
+.example small { display: block; font-size: 11px; color: #638b7e; margin-top: 4px; }
 .wordmark { font-size: 20px; font-weight: 750; letter-spacing: -1px; margin-right: auto; line-height: 1; }
 .wordmark > span { color: #2ba99a; font-weight: 400; }
 .wordmark small { display: block; font-size: 8px; font-weight: 400; color: #72938f; letter-spacing: .5px; margin-top: 4px; }

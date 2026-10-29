@@ -11,12 +11,17 @@
 <body>
   <main class="companion">
     <section class="bubble interactive" aria-labelledby="message">
-      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 01</span></div>
+      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 02</span></div>
       <h1 id="message" aria-live="polite">Un momento, ya estoy aquí…</h1>
       <p id="subtitle">Tu pequeña compañía de escritorio.</p>
       <form id="name-form" hidden>
         <label class="sr-only" for="first-name">Tu nombre</label>
         <div class="name-row"><input id="first-name" name="name" maxlength="40" placeholder="¿Cómo te llamas?" autocomplete="given-name" required><button class="primary" type="submit" aria-label="Guardar nombre y saludar">Hola, Miku <span aria-hidden="true">↗</span></button></div>
+      </form>
+      <form id="command-form" class="command-row" hidden>
+        <label class="sr-only" for="command">Escribe una orden para Miku</label>
+        <input id="command" maxlength="180" placeholder="Ponte tímida, dime la hora…" autocomplete="off" required>
+        <button id="send-command" class="primary" type="submit" aria-label="Enviar orden">↗</button>
       </form>
       <p id="error" class="error" role="status" hidden></p>
     </section>
@@ -26,10 +31,16 @@
       <div class="platform" aria-hidden="true"></div>
     </div>
 
+    <div class="moods interactive">
+      <div id="expression-picker" class="expression-picker" role="group" aria-label="Expresión de Miku"></div>
+      <span id="expression-label" class="mood-caption">Normal</span>
+    </div>
+
     <nav class="toolbar interactive" aria-label="Controles de Miku">
       <span class="wordmark">miku<span>ai</span><small>tu compañera</small></span>
       <button id="greet" class="icon-button" title="Saludar otra vez" aria-label="Saludar otra vez">♪</button>
       <button id="mute" class="icon-button" title="Silenciar voz" aria-label="Silenciar voz" aria-pressed="false">♫</button>
+      <button id="help-button" class="icon-button" title="Órdenes y ejemplos" aria-label="Ver órdenes y ejemplos" aria-expanded="false">✎</button>
       <button id="settings-button" class="icon-button" title="Ajustes" aria-label="Abrir ajustes" aria-expanded="false">⚙</button>
       <button id="hide" class="icon-button" title="Ocultar Miku" aria-label="Ocultar Miku">−</button>
     </nav>
@@ -55,6 +66,13 @@
       </form>
       <p class="local-note">Tu nombre y ajustes se guardan en este PC.</p>
       <button id="quit" class="text-button">Salir de MikuAI</button>
+    </section>
+
+    <section id="help" class="settings interactive" aria-labelledby="help-title" hidden>
+      <div class="settings-header"><div><span class="eyebrow">HAGAMOS ALGO</span><h2 id="help-title">¿Qué me vas a pedir?</h2></div><button id="close-help" class="icon-button" aria-label="Cerrar órdenes">×</button></div>
+      <p class="help-intro">Escribe una orden en mi bocadillo. Toca un ejemplo para prepararlo; puedes editarlo antes de enviarlo.</p>
+      <div id="command-examples" class="command-examples"></div>
+      <p class="local-note">Por ahora entiendo estas órdenes por texto. Funcionan sin conexión.</p>
     </section>
   </main>
 </body>

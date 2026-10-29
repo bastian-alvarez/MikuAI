@@ -1,0 +1,37 @@
+{
+  "tool": "Built-in image_gen, edit mode",
+  "reference": "assets/miku.png",
+  "transparent_background": true,
+  "variants": [
+    {
+      "key": "shy",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: SHY / timid anime expression: slightly averted turquoise eyes glancing sideways, subtly raised inner eyebrows, tiny closed bashful smile and a light pink blush. Gentle hesitant expression, distinct from a heavy blush. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/shy.png"
+    },
+    {
+      "key": "blush",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: BLUSHING / embarrassed anime expression: clearly intense rosy cheeks with small blush hatch lines, wide sparkling turquoise eyes and a small flustered wavy mouth. Sweet surprised embarrassment, nonsexual. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/blush.png"
+    },
+    {
+      "key": "happy",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: VERY HAPPY anime expression: eyes closed into joyful upward crescent shapes, broad cheerful smiling mouth, soft rosy cheeks. Radiant friendly delight. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/happy.png"
+    },
+    {
+      "key": "surprised",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: SURPRISED anime expression: wide round turquoise eyes, raised eyebrows, small round O-shaped open mouth. Cute startled surprise, no fear. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/surprised.png"
+    },
+    {
+      "key": "pout",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: POUTING / mildly annoyed anime expression: knitted eyebrows, turquoise eyes looking at viewer, puffed cheeks and tiny pouting closed mouth. Comical cute grumpiness, not aggressive. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/pout.png"
+    },
+    {
+      "key": "sleepy",
+      "prompt": "Edit target: the attached original Hatsune Miku desktop companion illustration. Create ONE full-body expression variant of this exact same character. Preserve original character identity, face shape, hair, all turquoise twin tails, outfit, body, proportions, raised waving hand, relaxed other arm, leg positions, line art, shading, camera, scale, and portrait composition. Change ONLY facial expression: SLEEPY anime expression: half-lidded drowsy turquoise eyes, relaxed eyebrows, tiny yawning mouth. Soft peaceful sleepy face. No symbols or floating text. Anime facial expression must be immediately readable when displayed as a small desktop sprite. Keep the entire body and boots visible. True transparent alpha background, preserve existing transparency. NO opaque backdrop, glow, halo, text, labels, panel grid, extra characters, objects, or cropped limbs. Match the reference as closely as possible outside the face. Do not redesign or change the pose.",
+      "file": "assets/expressions/sleepy.png"
+    }
+  ]
+}

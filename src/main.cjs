@@ -5,10 +5,11 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { normalizeSettings, greeting, loadSettings, saveSettings, visiblePosition } = require('./core.cjs');
 const { WindowsVoice } = require('./voice.cjs');
+const { EXPRESSIONS, EXAMPLES, interpretCommand } = require('./commands.cjs');
 
 if (process.env.MIKUAI_DATA_DIR) app.setPath('userData', path.resolve(process.env.MIKUAI_DATA_DIR));
 const singleInstance = app.requestSingleInstanceLock();
-let win, tray, settings, voice, quitting = false, positionTimer;
+let win, tray, settings, voice, quitting = false, positionTimer, lastReply = '';
 const size = { width: 400, height: 700 };
 const html = path.join(__dirname, 'renderer', 'index.html');
 const rendererUrl = pathToFileURL(html).href;
@@ -16,7 +17,7 @@ const dataFile = () => path.join(app.getPath('userData'), 'settings.json');
 const positionFile = () => path.join(app.getPath('userData'), 'position.json');
 
 function show() { if (win && !win.isDestroyed()) { win.show(); win.focus(); } }
-function hide() { win?.webContents.send('miku:pause'); win?.hide(); }
+function hide() { voice?.cancelSpeech(); win?.webContents.send('miku:pause'); win?.hide(); }
 function toggle() { if (win?.isVisible()) hide(); else show(); }
 function trayMenu() {
   tray.setContextMenu(Menu.buildFromTemplate([
@@ -32,6 +33,7 @@ function trayMenu() {
 function updateSettings(patch) {
   const next = saveSettings(dataFile(), { ...settings, ...patch });
   settings = next;
+  if (settings.muted) voice.cancelSpeech();
   win.setAlwaysOnTop(settings.alwaysOnTop);
   win.webContents.send('miku:settings', settings);
   trayMenu();
@@ -82,7 +84,7 @@ async function createWindow() {
   bind('miku:load', async () => {
     let voices = [], voiceError = '';
     try { voices = await voice.list(); } catch { voiceError = 'No pude cargar las voces. Revisa que Windows tenga una voz instalada.'; }
-    return { settings, voices, voiceError, shortcutAvailable, greeting: greeting(settings.name) };
+    return { settings, voices, voiceError, shortcutAvailable, greeting: greeting(settings.name), expressions: EXPRESSIONS, examples: EXAMPLES };
   });
   bind('miku:save', patch => {
     if (!patch || typeof patch !== 'object' || Array.isArray(patch)) throw new Error('Ajustes inválidos.');
@@ -91,10 +93,18 @@ async function createWindow() {
   });
   bind('miku:speak', async kind => {
     if (settings.muted) return { muted: true };
-    const text = kind === 'welcome' ? greeting(settings.name) : kind === 'introduction' ? greeting('') : null;
+    const text = kind === 'welcome' ? greeting(settings.name) : kind === 'introduction' ? greeting('') : kind === 'reply' ? lastReply : null;
     if (!text) throw new Error('Frase no disponible.');
     try { return await voice.synthesize(text, settings); }
     catch { return { error: 'No pude generar el audio. Prueba otra voz en Ajustes.' }; }
+  });
+  bind('miku:stop-speaking', () => voice.cancelSpeech());
+  bind('miku:command', input => {
+    const result = interpretCommand(input, settings);
+    if (result.patch) updateSettings(result.patch);
+    lastReply = result.text;
+    if (result.action === 'hide') hide();
+    return { ...result, settings };
   });
   bind('miku:hide', hide);
   bind('miku:quit', () => app.quit());

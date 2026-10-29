@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('miku', {
   load: () => ipcRenderer.invoke('miku:load'),
   save: patch => ipcRenderer.invoke('miku:save', patch),
   speak: kind => ipcRenderer.invoke('miku:speak', kind),
+  stopSpeaking: () => ipcRenderer.invoke('miku:stop-speaking'),
+  command: text => ipcRenderer.invoke('miku:command', text),
   hide: () => ipcRenderer.invoke('miku:hide'),
   quit: () => ipcRenderer.invoke('miku:quit'),
   interactive: value => ipcRenderer.invoke('miku:interactive', value),

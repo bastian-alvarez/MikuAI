@@ -4,7 +4,7 @@ const path = require('node:path');
 
 // Local adapter. A future licensed voice engine can replace this module.
 class WindowsVoice {
-  constructor(script) { this.script = script; this.active = new Set(); this.speaking = false; }
+  constructor(script) { this.script = script; this.active = new Set(); this.currentSpeech = null; }
 
   run(mode, payload) {
     if (process.platform !== 'win32') return Promise.reject(new Error('La voz local requiere Windows.'));
@@ -13,12 +13,14 @@ class WindowsVoice {
         ['-NoLogo', '-NoProfile', '-NonInteractive', '-File', this.script, '-Mode', mode],
         { windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
       this.active.add(child);
+      if (mode === 'speak') this.currentSpeech = child;
       let stdout = '', stderr = '', settled = false;
       const finish = (error, result) => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
         this.active.delete(child);
+        if (this.currentSpeech === child) this.currentSpeech = null;
         if (error) reject(error); else resolve(result);
       };
       const timer = setTimeout(() => { child.kill(); finish(new Error('La voz tardó demasiado. Intenta otra vez.')); }, 20000);
@@ -42,11 +44,10 @@ class WindowsVoice {
 
   list() { return this.run('voices'); }
   async synthesize(text, settings) {
-    if (this.speaking) throw new Error('Ya estoy preparando una frase.');
-    this.speaking = true;
-    try { return await this.run('speak', { text, voice: settings.voice, rate: settings.rate }); }
-    finally { this.speaking = false; }
+    this.cancelSpeech();
+    return this.run('speak', { text, voice: settings.voice, rate: settings.rate });
   }
+  cancelSpeech() { this.currentSpeech?.kill(); this.currentSpeech = null; }
   dispose() { for (const child of this.active) child.kill(); }
 }
 module.exports = { WindowsVoice };

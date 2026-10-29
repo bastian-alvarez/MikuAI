@@ -11,3 +11,18 @@
 > Edit target: the attached Miku character image. Precise background extraction: remove the entire black background and all turquoise/blue background glow or halo. Output a clean isolated full-body character cutout with actual alpha transparency, no background pixels, no rectangular fill and no drop shadow. Keep the exact character design, face, pose, clothing, all twin-tail strands and boots, and the original illustration quality unchanged. Add a small transparent margin around all edges so hair and shoes do not touch the canvas.
 
 `assets/tray.png` y `assets/icon.ico`: iconos geométricos originales, dibujados con código. No contienen ilustraciones oficiales.
+
+## Expresiones · 0.2.0
+
+Se generaron seis variantes con la herramienta integrada `image_gen`, en modo edición, usando `assets/miku.png` como referencia. Se mantuvieron pose, encuadre, ropa, cabello y proporciones; el cambio se concentra en el rostro. Todos los PNG tienen canal alfa y conservan las dimensiones 1024 × 1536.
+
+| Archivo | Expresión |
+| --- | --- |
+| `assets/expressions/shy.png` | Tímida: mirada ligeramente desviada y sonrisa pequeña |
+| `assets/expressions/blush.png` | Sonrojada: rubor intenso y gesto avergonzado |
+| `assets/expressions/happy.png` | Feliz: ojos cerrados y gran sonrisa |
+| `assets/expressions/surprised.png` | Sorprendida: ojos abiertos y boca en «O» |
+| `assets/expressions/pout.png` | Enfurruñada: mejillas infladas y puchero |
+| `assets/expressions/sleepy.png` | Soñolienta: ojos entrecerrados y bostezo |
+
+La expresión normal sigue usando la ilustración original sin reemplazarla. Los prompts completos y las rutas finales de cada variante están en [expression-prompts.json](expression-prompts.json).
