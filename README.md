@@ -90,6 +90,8 @@ El renderer usa aislamiento de contexto, sandbox, una política de contenido loc
 
 ## Siguientes pasos
 
+La [investigación sobre la voz auténtica de Miku](docs/real-miku-voice-research.md) compara las opciones oficiales, sus demos y una prueba gradual de integración. Es investigación: la versión 0.2.0 sigue usando la voz local de Windows.
+
 1. Elegir contigo el estilo final del personaje y pasar a un modelo animado si hace falta.
 2. Integrar un motor o banco de voz compatible y autorizado para acercarnos a la voz de Miku.
 3. Incorporar conversación y nuevas acciones concretas, y después reconocimiento de voz si lo elegimos.
