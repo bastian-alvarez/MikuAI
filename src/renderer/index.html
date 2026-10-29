@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>MikuAI</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="companion">
+    <section class="bubble interactive" aria-labelledby="message">
+      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 01</span></div>
+      <h1 id="message" aria-live="polite">Un momento, ya estoy aquí…</h1>
+      <p id="subtitle">Tu pequeña compañía de escritorio.</p>
+      <form id="name-form" hidden>
+        <label class="sr-only" for="first-name">Tu nombre</label>
+        <div class="name-row"><input id="first-name" name="name" maxlength="40" placeholder="¿Cómo te llamas?" autocomplete="given-name" required><button class="primary" type="submit" aria-label="Guardar nombre y saludar">Hola, Miku <span aria-hidden="true">↗</span></button></div>
+      </form>
+      <p id="error" class="error" role="status" hidden></p>
+    </section>
+
+    <div class="character interactive" title="Arrástrame para moverme">
+      <img id="miku-art" src="../../assets/miku.png" alt="Miku chibi de coletas turquesa saludando" draggable="false">
+      <div class="platform" aria-hidden="true"></div>
+    </div>
+
+    <nav class="toolbar interactive" aria-label="Controles de Miku">
+      <span class="wordmark">miku<span>ai</span><small>tu compañera</small></span>
+      <button id="greet" class="icon-button" title="Saludar otra vez" aria-label="Saludar otra vez">♪</button>
+      <button id="mute" class="icon-button" title="Silenciar voz" aria-label="Silenciar voz" aria-pressed="false">♫</button>
+      <button id="settings-button" class="icon-button" title="Ajustes" aria-label="Abrir ajustes" aria-expanded="false">⚙</button>
+      <button id="hide" class="icon-button" title="Ocultar Miku" aria-label="Ocultar Miku">−</button>
+    </nav>
+    <p class="hint" id="shortcut-hint">ARRÁSTRAME · CTRL + ALT + M PARA MOSTRAR / OCULTAR</p>
+
+    <section id="settings" class="settings interactive" aria-labelledby="settings-title" hidden>
+      <div class="settings-header"><div><span class="eyebrow">A TU MANERA</span><h2 id="settings-title">Hola, hagámoslo tuyo.</h2></div><button id="close-settings" class="icon-button" aria-label="Cerrar ajustes">×</button></div>
+      <form id="settings-form">
+        <label for="name">¿Cómo te llamo?</label>
+        <input id="name" maxlength="40" autocomplete="given-name" required>
+        <label for="voice">Voz de Windows</label>
+        <select id="voice"><option value="">Automática · preferir español</option></select>
+        <p class="field-note">Voz de prueba local. Todavía no es la voz oficial de Miku.</p>
+        <label for="pitch">Tono y rapidez <output id="pitch-value">1.12×</output></label>
+        <input id="pitch" type="range" min="0.8" max="1.4" step="0.01">
+        <label for="rate">Velocidad de lectura <output id="rate-value">0</output></label>
+        <input id="rate" type="range" min="-3" max="5" step="1">
+        <label for="volume">Volumen <output id="volume-value">80%</output></label>
+        <input id="volume" type="range" min="0" max="1" step="0.05">
+        <label class="check"><input id="always-on-top" type="checkbox"> Mantener sobre otras ventanas</label>
+        <button class="primary full" type="submit">Guardar y saludar <span aria-hidden="true">♡</span></button>
+        <p id="save-error" class="error" role="status" hidden></p>
+      </form>
+      <p class="local-note">Tu nombre y ajustes se guardan en este PC.</p>
+      <button id="quit" class="text-button">Salir de MikuAI</button>
+    </section>
+  </main>
+</body>
+</html>
