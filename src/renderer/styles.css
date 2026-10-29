@@ -10,6 +10,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .companion { height: 100vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 16px 22px 8px; }
 .bubble { width: 100%; padding: 20px 20px 17px; border: 1px solid #c2e9e4; border-radius: 23px 23px 8px 23px; background: #f5fffc; box-shadow: 0 8px 24px #0d5a5a18; position: relative; z-index: 2; }
 .bubble::after { content: ''; position: absolute; bottom: -9px; right: 64px; width: 16px; height: 16px; background: #f5fffc; border-right: 1px solid #c2e9e4; border-bottom: 1px solid #c2e9e4; transform: rotate(45deg); }
+.bubble { flex-shrink: 0; }
+.bubble-body { max-height: calc(100vh - 330px); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
 .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #3c8c87; display: flex; gap: 7px; align-items: center; }
 .status-dot { width: 6px; height: 6px; background: #27bca8; border-radius: 50%; box-shadow: 0 0 0 3px #27bca815; }
 .version { margin-left: auto; font-size: 8px; letter-spacing: 1.2px; color: #8aaba8; }
@@ -54,6 +56,10 @@ input:not([type=range]):not([type=checkbox]), select { color: #21474a; backgroun
 .microphone-bar button { display: flex; align-items: center; gap: 7px; background: #f5fffc; color: #466f68; border: 1px solid #bdddd3; border-radius: 20px; font-size: 11px; padding: 7px 12px; }
 #microphone-dot { width: 6px; height: 6px; border-radius: 50%; background: #9cb2aa; }
 #microphone[data-state=listening] #microphone-dot { background: #17a78a; box-shadow: 0 0 0 3px #17a78a20; }
+#microphone[data-state=command] { color: #17684e; border-color: #5ac49e; background: #ddf8e9; }
+#microphone[data-state=command] #microphone-dot { background: #17a78a; animation: pulse .7s ease-in-out infinite alternate; }
+#microphone[data-state=answering] #microphone-dot { background: #91a1cf; }
+.bubble .heard { font-size: 10px; color: #3d8475; margin-top: 6px; overflow-wrap: anywhere; }
 #microphone[data-state=error] #microphone-dot { background: #bf5978; }
 #microphone[data-state=starting] #microphone-dot { background: #d7a64f; }
 .microphone-settings { border-top: 1px solid #cce7dc; margin-top: 18px; padding-top: 8px; }

@@ -43,6 +43,16 @@ test('time, date, echo and supported UI actions', () => {
   assert.equal(command('Abre ajustes').action, 'settings');
   assert.equal(command('Ocúltate').action, 'hide');
 });
+
+test('spoken percentages use Spanish numbers and reject ambiguous values', () => {
+  for (const [text, value] of [['cero', 0], ['dieciséis', 16], ['veintiuno', 21], ['treinta', 30], ['cuarenta y dos', 42], ['noventa y nueve', 99], ['cien', 100]]) {
+    assert.equal(command(`volumen al ${text} por ciento`).patch.volume, value / 100, text);
+  }
+  for (const text of ['menos diez', 'ciento uno', 'treinta y dos y tres']) assert.equal(command(`volumen al ${text} por ciento`).recognized, false);
+  assert.equal(command('hola mico').recognized, true);
+  assert.equal(command('cancelar').recognized, true);
+  assert.equal(command('oculta te').action, 'hide');
+});
 test('unknown or oversized input never executes arbitrary OS commands', () => {
   for (const input of [null, {}, '', 'x'.repeat(181), 'constructor', '__proto__', 'abre powershell', 'rm -rf /', 'ocúltate; elimina archivos', 'cierra todas mis aplicaciones']) {
     const result = command(input);

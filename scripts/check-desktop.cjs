@@ -87,7 +87,7 @@ async function check() {
   if (process.env.MIKUAI_CAPTURE) {
     const output = path.resolve(process.env.MIKUAI_CAPTURE);
     fs.mkdirSync(output, { recursive: true });
-    fs.writeFileSync(path.join(output, 'desktop-v03.png'), (await win.webContents.capturePage()).toPNG());
+    fs.writeFileSync(path.join(output, 'desktop-v04.png'), (await win.webContents.capturePage()).toPNG());
   }
   await submit('Ocúltate');
   assert.equal(win.isVisible(), false);

@@ -14,9 +14,11 @@
 <body>
   <main class="companion">
     <section class="bubble interactive" aria-labelledby="message">
-      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 03</span></div>
+      <div class="bubble-body">
+      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 04</span></div>
       <h1 id="message" aria-live="polite">Un momento, ya estoy aquí…</h1>
       <p id="subtitle">Tu pequeña compañía de escritorio.</p>
+      <p id="heard" class="heard" hidden></p>
       <form id="name-form" hidden>
         <label class="sr-only" for="first-name">Tu nombre</label>
         <div class="name-row"><input id="first-name" name="name" maxlength="40" placeholder="¿Cómo te llamas?" autocomplete="given-name" required><button class="primary" type="submit" aria-label="Guardar nombre y saludar">Hola, Miku <span aria-hidden="true">↗</span></button></div>
@@ -27,6 +29,7 @@
         <button id="send-command" class="primary" type="submit" aria-label="Enviar orden">↗</button>
       </form>
       <p id="error" class="error" role="status" hidden></p>
+      </div>
     </section>
 
     <div class="character interactive" title="Arrástrame para moverme">
@@ -75,16 +78,17 @@
         <h3>Llámame y aparezco</h3>
         <label class="check"><input id="wake-enabled" type="checkbox"> Escuchar «oye Miku»</label>
         <p id="microphone-detail" role="status">Micrófono apagado.</p>
-        <p>Al activarlo, el micrófono escucha también cuando Miku está oculta. El audio se procesa en este PC y no se guarda ni se envía a un servidor. Para detenerlo, apaga la escucha o sal de MikuAI.</p>
+        <p>Di «oye Miku», espera mi respuesta y dime una orden. Tienes unos 12 segundos para hablar. Después volveré a esperar la llamada. Puedes decir «cancelar».</p>
+        <p>El micrófono escucha también cuando Miku está oculta. El audio se procesa en este PC y no se guarda ni se envía a un servidor. Para detenerlo, apaga la escucha o sal de MikuAI.</p>
       </div>
       <button id="quit" class="text-button">Salir de MikuAI</button>
     </section>
 
     <section id="help" class="settings interactive" aria-labelledby="help-title" hidden>
       <div class="settings-header"><div><span class="eyebrow">HAGAMOS ALGO</span><h2 id="help-title">¿Qué me vas a pedir?</h2></div><button id="close-help" class="icon-button" aria-label="Cerrar órdenes">×</button></div>
-      <p class="help-intro">Escribe una orden en mi bocadillo. Toca un ejemplo para prepararlo; puedes editarlo antes de enviarlo.</p>
+      <p class="help-intro">Escribe una orden o activa el micrófono y di «oye Miku». Espera mi respuesta y dime lo que necesitas. Toca un ejemplo para editarlo por texto.</p>
       <div id="command-examples" class="command-examples"></div>
-      <p class="local-note">Por ahora entiendo estas órdenes por texto. Funcionan sin conexión.</p>
+      <p class="local-note">Estas órdenes funcionan por texto y por voz, sin conexión.</p>
     </section>
   </main>
 </body>

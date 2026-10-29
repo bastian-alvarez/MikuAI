@@ -4,12 +4,13 @@ Una primera compañera para el escritorio de Windows, inspirada en Hatsune Miku.
 
 <img src="assets/miku.png" alt="Miku, compañera de escritorio" width="240">
 
-## Versión 0.3.0 · «Oye Miku»
+## Versión 0.4.0 · Pregunta y órdenes por voz
 
 - Personaje 2D sobre el escritorio con fondo transparente y animación suave.
 - Siete expresiones: original, tímida, sonrojada, feliz, sorprendida, enfurruñada y soñolienta. Cambia desde los botones bajo el personaje o mediante una orden. Recuerda la expresión elegida al volver a abrir la aplicación.
-- Órdenes por texto en español, con ejemplos editables desde el botón **✎** de la barra.
-- Activación por micrófono: di **«oye Miku»** para mostrarla aunque esté oculta en la bandeja. Reconocimiento local en español, apagado por defecto y con control visible.
+- Órdenes por texto y por voz en español, con ejemplos desde el botón **✎** de la barra.
+- Di **«oye Miku»**: aparece y responde **«¿Qué necesitas, nombre-sama?»**. Después de la respuesta, escucha una orden durante unos 12 segundos y vuelve a esperar la llamada.
+- Reconocimiento local, apagado por defecto y con un indicador que distingue la espera de llamada, la respuesta y la escucha de una orden.
 - Pregunta tu nombre la primera vez. Después te recibe con **«¡Bienvenido, nombre-sama!»** al abrir la aplicación.
 - Saludo hablado sin conexión, usando una voz instalada de Windows.
 - Recuerda nombre, voz, volumen, tono, velocidad, visibilidad superior y posición.
@@ -36,21 +37,24 @@ Después de guardar tu nombre aparece una caja de texto en el bocadillo. Escribe
 | Cambiar superposición | `Siempre visible`, `Desactiva siempre visible` |
 | Abrir paneles | `Ayuda`, `¿Qué puedes hacer?`, `Abre ajustes` |
 | Ocultarla | `Ocúltate` (volver desde la bandeja o con Ctrl + Alt + M) |
+| Cancelar la interacción | `Cancelar`, `Nada gracias`, `Olvídalo` |
 
-Las órdenes se reconocen localmente mediante frases y sinónimos; aceptan tildes, mayúsculas y «por favor». Si una frase no está soportada, Miku lo indica y ofrece la lista. Las respuestas habladas se interrumpen al enviar otra orden. El micrófono reconoce la llamada de activación; las órdenes se escriben en el bocadillo. No hay todavía conversación libre con un modelo de IA. Las órdenes cambian el estado de Miku; no ejecutan comandos del sistema ni controlan otras aplicaciones.
+Las órdenes escritas y habladas usan el mismo intérprete local, con frases y sinónimos. También entiende números hablados para el volumen: `volumen al treinta por ciento`. La transcripción de una orden de voz aparece temporalmente en el bocadillo para poder comprobar qué entendió. Si la orden no se entiende, Miku lo indica. Las respuestas habladas se interrumpen al enviar una orden por texto. No hay todavía conversación libre con un modelo de IA. Las órdenes cambian el estado de Miku; no ejecutan comandos del sistema ni controlan otras aplicaciones.
 
 ## Activación por micrófono
 
 1. Abre MikuAI y pulsa **Activar «oye Miku»** debajo de la barra. También está en Ajustes y en el menú de la bandeja.
 2. La primera activación carga el modelo incluido. Espera a que el indicador diga **Escuchando «oye Miku»**.
-3. Oculta a Miku con **−** o **Ctrl + Alt + M** y di **«oye Miku»**. Al reconocer la frase, Miku aparece y enfoca la caja de texto.
-4. Para dejar de escuchar, pulsa el mismo control, desmarca la opción en Ajustes/bandeja o sal de la aplicación. Silenciar la voz de salida y apagar el micrófono son controles independientes.
+3. Di **«oye Miku»**, también si está oculta en la bandeja. Miku aparece y responde **«¿Qué necesitas, nombre-sama?»**.
+4. Espera a que termine la respuesta y el indicador cambie a **Te escucho: di una orden**. Di, por ejemplo, **«ponte feliz»**, **«qué hora es»**, **«volumen al treinta por ciento»** u **«ocúltate»**.
+5. Ejecuta una orden por llamada. Tras completarla, cancelarla o pasar unos 12 segundos sin recibirla, vuelve a esperar **«oye Miku»**. Escribir una orden, ocultar la ventana o apagar la escucha también cancela el turno pendiente.
+6. Para dejar de escuchar, pulsa el mismo control, desmarca la opción en Ajustes/bandeja o sal de la aplicación. Silenciar la voz de salida y apagar el micrófono son controles independientes; si está silenciada, la pregunta se muestra por texto y se sigue permitiendo una orden de voz.
 
 MikuAI tiene que seguir ejecutándose en segundo plano. No puede arrancar por voz después de cerrarla por completo y todavía no se configura para iniciar con Windows. La preferencia de escucha se recuerda entre aperturas.
 
 El modelo español Vosk está incluido: no requiere cuenta, clave API, Python ni instalar un paquete de idioma de Windows. El audio se procesa en memoria en este equipo y no se guarda ni se sube a un servidor. Se usa el micrófono predeterminado de Windows. Si no aparece un micrófono o Windows deniega el acceso, la interfaz lo indica; revisa el dispositivo y los permisos de micrófono para aplicaciones de escritorio de Windows y vuelve a intentarlo. MikuAI no cambia esos permisos del sistema.
 
-Para reducir activaciones por su propia voz, el reconocimiento ignora la salida hablada de Miku y un intervalo corto después de ella. Hay un intervalo entre activaciones repetidas. Como primera implementación usa reconocimiento de frases, no un detector de palabra clave especializado: ruido, altavoces o distintas pronunciaciones pueden producir errores. Se aceptan grafías fonéticas que el reconocedor puede dar al nombre, como «mico» y «mi cu». El modelo y sus [licencias y procedencia](assets/speech/NOTICE.md) se incluyen en el proyecto.
+Para reducir activaciones por su propia voz, el reconocimiento ignora la salida hablada de Miku y un intervalo corto después de ella. El decodificador se reinicia entre la pregunta y la orden. Fuera de un turno, descarta las frases que no sean la llamada. Hay un intervalo entre activaciones repetidas. Como primera implementación usa reconocimiento de frases, no un detector de palabra clave especializado: ruido, altavoces o distintas pronunciaciones pueden producir errores. Se aceptan grafías fonéticas que el reconocedor puede dar al nombre, como «mico» y «mi cu». El modelo y sus [licencias y procedencia](assets/speech/NOTICE.md) se incluyen en el proyecto.
 
 ## Ejecutar desde el código
 
@@ -69,7 +73,7 @@ La primera apertura pregunta tu nombre por texto y voz. Escribe tu nombre y puls
 npm run build
 ```
 
-El archivo portable queda en `release/MikuAI-0.3.0-Windows.exe`. No necesita instalador. El ejecutable aún no tiene firma digital. Para generar la carpeta ejecutable sin empaquetado portable:
+El archivo portable queda en `release/MikuAI-0.4.0-Windows.exe`. No necesita instalador. El ejecutable aún no tiene firma digital. Para generar la carpeta ejecutable sin empaquetado portable:
 
 ```powershell
 npm run build:dir
@@ -87,7 +91,7 @@ npm run test:desktop
 npm run test:listener
 ```
 
-Las pruebas de Node cubren ajustes, migraciones, órdenes, alias, límites, recursos y la compuerta de activación. `test:voice` genera un saludo WAV real. `test:desktop` comprueba la interfaz con un perfil separado en `.local/`. `test:listener` activa temporalmente el micrófono, comprueba el reconocedor con un WAV sintético de «oye Miku», la aparición de la ventana oculta y la liberación del dispositivo al desactivar la escucha. No graba audio del entorno. La calidad con la voz de cada persona necesita probarse con su micrófono.
+Las pruebas de Node cubren ajustes, órdenes, números hablados y turnos de voz con autorización y caducidad. `test:voice` genera un WAV real. `test:desktop` comprueba la interfaz con un perfil separado en `.local/`. `test:listener` activa temporalmente el micrófono y usa WAV sintéticos para comprobar llamada, reproducción de la pregunta personalizada, expresiones, volumen, hora y ocultación por voz. También comprueba la espera sin orden, rechazo de turnos ya consumidos y liberación del dispositivo. No graba audio del entorno. La calidad con la voz de cada persona necesita probarse con su micrófono.
 
 ## Datos locales y arquitectura
 
@@ -112,6 +116,6 @@ La [investigación sobre la voz auténtica de Miku](docs/real-miku-voice-researc
 
 1. Elegir contigo el estilo final del personaje y pasar a un modelo animado si hace falta.
 2. Integrar un motor o banco de voz compatible y autorizado para acercarnos a la voz de Miku.
-3. Incorporar órdenes habladas después de la llamada y nuevas acciones concretas.
+3. Mejorar el reconocimiento de órdenes y añadir nuevas acciones concretas.
 
 Proyecto de fan independiente, sin afiliación con Crypton Future Media. Hatsune Miku y sus elementos asociados pertenecen a sus respectivos titulares. La ilustración generada no otorga derechos sobre el personaje; antes de distribuir comercialmente, habrá que revisar las condiciones aplicables. No se incluye un banco de voz propietario. El código aún no tiene una licencia de redistribución elegida.

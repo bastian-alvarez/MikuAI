@@ -2,11 +2,12 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, screen, session, protocol, net } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
+const { randomUUID } = require('node:crypto');
 const { pathToFileURL } = require('node:url');
-const { normalizeSettings, greeting, loadSettings, saveSettings, visiblePosition } = require('./core.cjs');
+const { normalizeSettings, greeting, wakeQuestion, loadSettings, saveSettings, visiblePosition } = require('./core.cjs');
 const { WindowsVoice } = require('./voice.cjs');
 const { EXPRESSIONS, EXAMPLES, interpretCommand } = require('./commands.cjs');
-const { WakeGate } = require('./renderer/wake-logic.js');
+const { WakeGate, VoiceCommandWindow } = require('./renderer/wake-logic.js');
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'miku', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 
@@ -16,12 +17,13 @@ let win, tray, settings, voice, quitting = false, positionTimer, lastReply = '';
 const size = { width: 400, height: 700 };
 const rendererUrl = 'miku://app/src/renderer/index.html';
 const wakeGate = new WakeGate();
+const voiceTurn = new VoiceCommandWindow();
 let microphoneStatus = { state: 'off', message: 'Micrófono apagado.' };
 const dataFile = () => path.join(app.getPath('userData'), 'settings.json');
 const positionFile = () => path.join(app.getPath('userData'), 'position.json');
 
 function show() { if (win && !win.isDestroyed()) { win.setIgnoreMouseEvents(false); win.show(); win.focus(); } }
-function hide() { voice?.cancelSpeech(); win?.webContents.send('miku:pause'); win?.hide(); }
+function hide() { voiceTurn.cancel(); voice?.cancelSpeech(); win?.webContents.send('miku:pause'); win?.hide(); }
 function toggle() { if (win?.isVisible()) hide(); else show(); }
 function trayMenu() {
   tray.setContextMenu(Menu.buildFromTemplate([
@@ -38,11 +40,23 @@ function trayMenu() {
 function updateSettings(patch) {
   const next = saveSettings(dataFile(), { ...settings, ...patch });
   settings = next;
+  if (!settings.wakeEnabled) voiceTurn.cancel();
   if (settings.muted) voice.cancelSpeech();
   win.setAlwaysOnTop(settings.alwaysOnTop);
   win.webContents.send('miku:settings', settings);
   trayMenu();
   return settings;
+}
+function executeCommand(input, fromVoice = false) {
+  const result = interpretCommand(input, settings);
+  if (fromVoice && !result.recognized) {
+    result.text = 'No entendí esa orden. Puedes decir «ayuda» para ver ejemplos.';
+    result.speak = true;
+  }
+  if (result.patch) updateSettings(result.patch);
+  lastReply = result.text;
+  if (result.action === 'hide') hide();
+  return { ...result, settings };
 }
 function bind(channel, handler) {
   ipcMain.handle(channel, (event, ...args) => {
@@ -123,30 +137,37 @@ async function createWindow() {
   });
   bind('miku:speak', async kind => {
     if (settings.muted) return { muted: true };
-    const text = kind === 'welcome' ? greeting(settings.name) : kind === 'introduction' ? greeting('') : kind === 'reply' ? lastReply : null;
+    const text = kind === 'welcome' ? greeting(settings.name) : kind === 'introduction' ? greeting('') : kind === 'reply' ? lastReply : kind === 'wake' ? wakeQuestion(settings.name) : null;
     if (!text) throw new Error('Frase no disponible.');
     try { return await voice.synthesize(text, settings); }
     catch { return { error: 'No pude generar el audio. Prueba otra voz en Ajustes.' }; }
   });
   bind('miku:stop-speaking', () => voice.cancelSpeech());
   bind('miku:command', input => {
-    const result = interpretCommand(input, settings);
-    if (result.patch) updateSettings(result.patch);
-    lastReply = result.text;
-    if (result.action === 'hide') hide();
-    return { ...result, settings };
+    voiceTurn.cancel();
+    return executeCommand(input);
+  });
+  bind('miku:arm-voice-turn', id => settings.wakeEnabled ? voiceTurn.arm(id) : null);
+  bind('miku:end-voice-turn', id => voiceTurn.cancel(id));
+  bind('miku:voice-command', (id, input) => {
+    if (!settings.wakeEnabled || !voiceTurn.consume(id)) return { accepted: false };
+    return { ...executeCommand(input, true), accepted: true };
   });
   bind('miku:hide', hide);
   bind('miku:microphone-status', status => {
-    if (!status || !['off', 'starting', 'listening', 'error'].includes(status.state)) return;
+    if (!status || !['off', 'starting', 'listening', 'answering', 'command', 'error'].includes(status.state)) return;
     microphoneStatus = { state: status.state, message: typeof status.message === 'string' ? status.message.slice(0, 200) : '' };
-    win.webContents.setBackgroundThrottling(!['starting', 'listening'].includes(status.state));
-    tray.setToolTip(`MikuAI · ${status.state === 'listening' ? 'Escuchando «oye Miku»' : status.state === 'starting' ? 'Preparando micrófono' : status.state === 'error' ? 'Error de micrófono' : 'Micrófono apagado'} · Ctrl + Alt + M`);
+    if (['off', 'error'].includes(status.state)) voiceTurn.cancel();
+    win.webContents.setBackgroundThrottling(['off', 'error'].includes(status.state));
+    const label = { listening: 'Escuchando «oye Miku»', command: 'Escuchando una orden', answering: 'Respondiendo', starting: 'Preparando micrófono', error: 'Error de micrófono', off: 'Micrófono apagado' };
+    tray.setToolTip(`MikuAI · ${label[status.state]} · Ctrl + Alt + M`);
   });
   bind('miku:wake-heard', text => {
-    if (!wakeGate.accept(text, settings.wakeEnabled && microphoneStatus.state === 'listening')) return false;
+    if (!wakeGate.accept(text, settings.wakeEnabled && ['listening', 'command'].includes(microphoneStatus.state))) return false;
+    const id = randomUUID();
+    voiceTurn.begin(id);
     show();
-    win.webContents.send('miku:wake');
+    win.webContents.send('miku:wake', { id, text: wakeQuestion(settings.name) });
     return true;
   });
   bind('miku:quit', () => app.quit());

@@ -27,6 +27,11 @@ function greeting(name) {
   return clean ? `¡Bienvenido, ${clean}-sama!` : '¡Hola! Soy Miku. ¿Cómo te llamas?';
 }
 
+function wakeQuestion(name) {
+  const clean = normalizeSettings({ name }).name;
+  return clean ? `¿Qué necesitas, ${clean}-sama?` : '¿Qué necesitas?';
+}
+
 function loadSettings(file) {
   try { return normalizeSettings(JSON.parse(fs.readFileSync(file, 'utf8'))); }
   catch (error) {
@@ -50,4 +55,4 @@ function visiblePosition(position, displays, size) {
   return { x: Math.round(Math.max(area.x, Math.min(position.x, area.x + Math.max(0, area.width - size.width)))), y: Math.round(Math.max(area.y, Math.min(position.y, area.y + Math.max(0, area.height - size.height)))) };
 }
 
-module.exports = { DEFAULTS, normalizeSettings, greeting, loadSettings, saveSettings, visiblePosition };
+module.exports = { DEFAULTS, normalizeSettings, greeting, wakeQuestion, loadSettings, saveSettings, visiblePosition };

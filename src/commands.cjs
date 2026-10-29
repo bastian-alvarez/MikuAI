@@ -40,6 +40,22 @@ const moods = { normal: 'normal', original: 'normal', timida: 'shy', timido: 'sh
 const moodReplies = { normal: '¡Ya estoy de vuelta! ♡', shy: 'E-eh… me da un poquito de vergüenza.', blush: '¡A-ah! Me hiciste sonrojar…', happy: '¡Yay! Me alegra estar contigo. ♡', surprised: '¡¿Eh?! ¡Eso sí que no me lo esperaba!', pout: '¡Hmph! Estoy haciendo un pequeño puchero.', sleepy: 'Mmm… cinco minutitos más…' };
 const moodActions = { sonrojate: 'blush', descansa: 'sleepy', sonrie: 'happy', sorprendete: 'surprised', 'haz un puchero': 'pout', 'vuelve a la normalidad': 'normal' };
 
+function spokenPercent(text) {
+  if (/^\d{1,3}$/.test(text)) return Number(text);
+  const units = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+  const small = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciseis', 'diecisiete', 'dieciocho', 'diecinueve'];
+  if (units.includes(text)) return units.indexOf(text);
+  if (small.includes(text)) return small.indexOf(text) + 10;
+  if (text === 'cien' || text === 'ciento') return 100;
+  if (text.startsWith('veinti') && units.indexOf(text.slice(6)) > 0) return 20 + units.indexOf(text.slice(6));
+  const tens = ['veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+  const parts = text.split(' y ');
+  if (parts.length > 2) return null;
+  const [ten, unit] = parts;
+  if (tens.includes(ten) && (unit === undefined || units.indexOf(unit) > 0)) return (tens.indexOf(ten) + 2) * 10 + (unit === undefined ? 0 : units.indexOf(unit));
+  return null;
+}
+
 function interpretCommand(input, settings, now = new Date()) {
   const unknown = text => ({ recognized: false, text: text || 'Todavía no entiendo esa orden. Pulsa «Órdenes» para ver ejemplos.', speak: false });
   if (typeof input !== 'string' || input.length > 180) return unknown('Escribe una orden de hasta 180 caracteres.');
@@ -47,9 +63,10 @@ function interpretCommand(input, settings, now = new Date()) {
   if (!raw) return unknown('Escribe una orden para empezar.');
   // Full-sentence matching prevents accidental substring actions and shell execution.
   const clean = raw.replace(/^(?:miku[, :]\s*|por favor[, :]?\s*)+/i, '').replace(/[, ]+por favor[.!?]*$/i, '').replace(/[¿?¡!]+/g, '').replace(/[.]+$/, '').trim();
-  const text = fold(clean);
+  const text = fold(clean).replace(/^(oculta|esconde|sonroja|sorprende) te$/, '$1te');
   const reply = (message, patch, extra = {}) => ({ recognized: true, text: message, speak: true, ...(patch ? { patch } : {}), ...extra });
-  if (/^(?:hola(?:,? miku)?|saluda(?:me)?|buenos dias|buenas tardes|buenas noches)$/.test(text)) return reply(greeting(settings.name), { expression: 'happy' });
+  if (/^(?:hola(?:,? (?:miku|mico|mi cu))?|saluda(?:me)?|buenos dias|buenas tardes|buenas noches)$/.test(text)) return reply(greeting(settings.name), { expression: 'happy' });
+  if (/^(?:cancela(?:r)?|nada(?: gracias)?|olvidalo|no necesito nada)$/.test(text)) return reply('De acuerdo. Llámame cuando me necesites.');
   const rename = clean.match(/^(?:me llamo|mi nombre es|ll[aá]mame)\s+(.+)$/i);
   if (rename) {
     const name = normalizeSettings({ name: rename[1] }).name;
@@ -63,10 +80,10 @@ function interpretCommand(input, settings, now = new Date()) {
   if (/^(?:que dia es(?: hoy)?|que fecha es(?: hoy)?|dime la fecha|fecha)$/.test(text)) return reply(`Hoy es ${new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)}.`);
   if (/^(?:silencio|silenciate|silenciar|callate|desactiva(?: la)? voz)$/.test(text)) return reply('De acuerdo, estaré en silencio. ♡', { muted: true }, { speak: false });
   if (/^(?:activa(?: la)? voz|habla de nuevo|quita el silencio)$/.test(text)) return reply('¡Ya puedes escucharme otra vez!', { muted: false });
-  const volume = text.match(/^(?:(?:pon|ajusta|cambia)(?: el)? )?volumen(?: al| a)?\s+(\d{1,3})\s*(?:%|por ciento)?$/);
+  const volume = text.match(/^(?:(?:pon|ajusta|cambia)(?: el)? )?volumen(?: al| a)?\s+(.+?)(?:\s*%|\s+por\s*ciento)?$/);
   if (volume) {
-    const value = Number(volume[1]);
-    if (value > 100) return unknown('El volumen debe estar entre 0 y 100 %.');
+    const value = spokenPercent(volume[1]);
+    if (value === null || value > 100) return unknown('Dime un volumen entre cero y cien por ciento.');
     return reply(`Volumen al ${value} %.`, { volume: value / 100 });
   }
   if (/^(?:sube|baja)(?: el)? volumen$/.test(text)) {
