@@ -27,9 +27,12 @@ async function check() {
   assert.equal(win.webContents.getLastWebPreferences().contextIsolation, true);
   assert.equal(win.webContents.getLastWebPreferences().nodeIntegration, false);
   assert.equal(await js('typeof window.require'), 'undefined');
+  assert.equal(await js('location.protocol'), 'miku:');
   const loaded = await js('window.miku.load()');
   assert.equal(loaded.shortcutAvailable, globalShortcut.isRegistered('CommandOrControl+Alt+M'));
   assert.equal(loaded.settings.name, '');
+  assert.equal(loaded.settings.wakeEnabled, false);
+  assert.equal(await js("document.getElementById('microphone').getAttribute('aria-pressed')"), 'false');
   assert.ok(loaded.voices.length > 0);
   await waitFor(() => js("document.getElementById('miku-art').complete && document.getElementById('miku-art').naturalWidth > 0"), 'imagen');
   // Let the initial spoken question finish before asking for the welcome.
@@ -84,7 +87,7 @@ async function check() {
   if (process.env.MIKUAI_CAPTURE) {
     const output = path.resolve(process.env.MIKUAI_CAPTURE);
     fs.mkdirSync(output, { recursive: true });
-    fs.writeFileSync(path.join(output, 'desktop-v02.png'), (await win.webContents.capturePage()).toPNG());
+    fs.writeFileSync(path.join(output, 'desktop-v03.png'), (await win.webContents.capturePage()).toPNG());
   }
   await submit('Ocúltate');
   assert.equal(win.isVisible(), false);

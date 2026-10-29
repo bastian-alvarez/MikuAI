@@ -2,11 +2,36 @@
 const $ = id => document.getElementById(id);
 let settings, audio, audioUrl, speechGeneration = 0, speaking = false, returnFocus;
 let expressions = [], expressionRequest = 0;
+let microphoneState = { state: 'off', message: 'Micrófono apagado.' };
+let listeningPreference = false;
+const listener = new MikuListener(status => {
+  microphoneState = status;
+  renderMicrophone();
+  window.miku.microphoneStatus(status).catch(() => {});
+}, text => window.miku.wakeHeard(text).catch(() => {}));
+
+function renderMicrophone() {
+  const labels = { off: 'Activar «oye Miku»', starting: 'Preparando escucha…', listening: 'Escuchando «oye Miku»', error: 'Reintentar micrófono' };
+  $('microphone').dataset.state = microphoneState.state;
+  $('microphone-label').textContent = labels[microphoneState.state];
+  $('microphone').setAttribute('aria-pressed', String(settings?.wakeEnabled || false));
+  $('microphone').setAttribute('aria-label', microphoneState.state === 'error' ? 'Reintentar escucha por micrófono' : settings?.wakeEnabled ? 'Apagar escucha por micrófono' : 'Activar escucha por micrófono');
+  $('microphone').title = microphoneState.message;
+  $('microphone-detail').textContent = microphoneState.message;
+  $('wake-enabled').checked = settings?.wakeEnabled || false;
+}
+function syncListening() {
+  renderMicrophone();
+  if (listeningPreference === settings.wakeEnabled) return;
+  listeningPreference = settings.wakeEnabled;
+  if (listeningPreference) listener.start(); else listener.stop();
+}
 
 function errorMessage(message = '') { $('error').textContent = message; $('error').hidden = !message; }
 function stopAudio() {
   speechGeneration++;
   window.miku.stopSpeaking().catch(() => {});
+  listener.output(false);
   if (audio) { audio.pause(); audio.onended = null; audio.onerror = null; audio = null; }
   if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = null; }
   speaking = false;
@@ -72,6 +97,7 @@ async function speak(kind) {
   stopAudio();
   errorMessage();
   if (settings.muted) return;
+  listener.output(true);
   const generation = speechGeneration;
   speaking = true;
   $('greet').disabled = true;
@@ -140,8 +166,30 @@ window.miku.onSettings(value => {
   settings = value;
   if (settings.muted) stopAudio();
   if (previousName !== settings.name) setMessage(); else syncControls();
+  syncListening();
 });
 window.miku.onPause(stopAudio);
+window.miku.onWake(() => {
+  stopAudio();
+  if (!$('help').hidden) closeHelp(false);
+  if (!$('settings').hidden) closeSettings();
+  $('message').textContent = settings.name ? `¡Aquí estoy, ${settings.name}-sama!` : '¡Aquí estoy!';
+  $('message').classList.remove('long-message');
+  $('subtitle').textContent = 'Escribe tu orden en el bocadillo. ♡';
+  (settings.name ? $('command') : $('first-name')).focus();
+});
+async function setListening(enabled) {
+  try {
+    settings = await window.miku.save({ wakeEnabled: enabled });
+    syncListening();
+  } catch { errorMessage('No pude guardar el ajuste de micrófono.'); }
+}
+$('microphone').addEventListener('click', () => {
+  if (microphoneState.state === 'error' && settings.wakeEnabled) listener.start();
+  else setListening(!settings.wakeEnabled);
+});
+$('wake-enabled').addEventListener('change', () => setListening($('wake-enabled').checked));
+window.addEventListener('beforeunload', () => listener.stop());
 $('name-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {
@@ -238,6 +286,7 @@ async function init() {
   }
   if (!result.shortcutAvailable) $('shortcut-hint').textContent = 'ARRÁSTRAME · PUEDES MOSTRARME DESDE LA BANDEJA';
   setMessage();
+  syncListening();
   if (!settings.name) $('first-name').focus();
   if (result.voiceError) errorMessage(result.voiceError);
   else await speak(settings.name ? 'welcome' : 'introduction');

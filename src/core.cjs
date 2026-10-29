@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const EXPRESSION_IDS = Object.freeze(['normal', 'shy', 'blush', 'happy', 'surprised', 'pout', 'sleepy']);
-const DEFAULTS = Object.freeze({ name: '', voice: '', pitch: 1.12, rate: 0, volume: 0.8, muted: false, alwaysOnTop: true, expression: 'normal' });
+const DEFAULTS = Object.freeze({ name: '', voice: '', pitch: 1.12, rate: 0, volume: 0.8, muted: false, alwaysOnTop: true, expression: 'normal', wakeEnabled: false });
 
 function normalizeSettings(input = {}) {
   const source = input && typeof input === 'object' ? input : {};
@@ -18,6 +18,7 @@ function normalizeSettings(input = {}) {
     muted: typeof source.muted === 'boolean' ? source.muted : DEFAULTS.muted,
     alwaysOnTop: typeof source.alwaysOnTop === 'boolean' ? source.alwaysOnTop : DEFAULTS.alwaysOnTop,
     expression: EXPRESSION_IDS.includes(source.expression) ? source.expression : DEFAULTS.expression,
+    wakeEnabled: typeof source.wakeEnabled === 'boolean' ? source.wakeEnabled : false,
   };
 }
 

@@ -50,6 +50,17 @@ input:not([type=range]):not([type=checkbox]), select { color: #21474a; backgroun
 .icon-button:hover { background: #dff3ed; color: #196d65; }
 .icon-button[aria-pressed=true] { background: #fbe7f0; color: #ad4775; }
 .hint { font-size: 8px; letter-spacing: .8px; color: #eafffa; text-shadow: 0 1px 4px #102c36, 0 0 3px #102c36; margin: 10px 0 0; white-space: nowrap; flex-shrink: 0; }
+.microphone-bar { flex-shrink: 0; margin-top: 7px; }
+.microphone-bar button { display: flex; align-items: center; gap: 7px; background: #f5fffc; color: #466f68; border: 1px solid #bdddd3; border-radius: 20px; font-size: 11px; padding: 7px 12px; }
+#microphone-dot { width: 6px; height: 6px; border-radius: 50%; background: #9cb2aa; }
+#microphone[data-state=listening] #microphone-dot { background: #17a78a; box-shadow: 0 0 0 3px #17a78a20; }
+#microphone[data-state=error] #microphone-dot { background: #bf5978; }
+#microphone[data-state=starting] #microphone-dot { background: #d7a64f; }
+.microphone-settings { border-top: 1px solid #cce7dc; margin-top: 18px; padding-top: 8px; }
+.microphone-settings h3 { font-size: 14px; margin: 7px 0; }
+.microphone-settings .check { margin: 10px 0; }
+.microphone-settings p { font-size: 11px; line-height: 1.6; color: #718b82; }
+.microphone-settings p[role=status] { color: #397965; }
 .settings { position: absolute; z-index: 5; inset: 16px 22px 40px; background: #f5fffc; border: 1px solid #bce3dc; box-shadow: 0 12px 40px #0f38362b; border-radius: 23px; padding: 23px; overflow-y: auto; }
 .settings-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 21px; }
 h2 { font-size: 21px; letter-spacing: -.7px; margin: 8px 0 0; font-weight: 650; }

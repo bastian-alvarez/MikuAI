@@ -1,0 +1,9 @@
+{
+  "package": "vosk-browser",
+  "version": "0.0.8",
+  "upstreamSha256": "29504515526e974f4cb053cf08811c4de5fb2a74007c0a5a957db50eaa8d5d0c",
+  "changes": [
+    "Extract embedded worker as a local file",
+    "Use Web Crypto randomUUID in client instead of bundled UUID routines"
+  ]
+}

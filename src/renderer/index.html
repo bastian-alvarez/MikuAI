@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self'; img-src 'self'; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>MikuAI</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="../../assets/vendor/vosk.js" defer></script>
+  <script src="wake-logic.js" defer></script>
+  <script src="listener.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
   <main class="companion">
     <section class="bubble interactive" aria-labelledby="message">
-      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 02</span></div>
+      <div class="eyebrow"><span class="status-dot"></span> MIKU AI <span class="version">DESKTOP / 03</span></div>
       <h1 id="message" aria-live="polite">Un momento, ya estoy aquí…</h1>
       <p id="subtitle">Tu pequeña compañía de escritorio.</p>
       <form id="name-form" hidden>
@@ -45,6 +48,9 @@
       <button id="hide" class="icon-button" title="Ocultar Miku" aria-label="Ocultar Miku">−</button>
     </nav>
     <p class="hint" id="shortcut-hint">ARRÁSTRAME · CTRL + ALT + M PARA MOSTRAR / OCULTAR</p>
+    <div class="microphone-bar interactive">
+      <button id="microphone" type="button" aria-pressed="false" aria-label="Activar escucha por micrófono"><span id="microphone-dot" aria-hidden="true"></span><span id="microphone-label">Activar «oye Miku»</span></button>
+    </div>
 
     <section id="settings" class="settings interactive" aria-labelledby="settings-title" hidden>
       <div class="settings-header"><div><span class="eyebrow">A TU MANERA</span><h2 id="settings-title">Hola, hagámoslo tuyo.</h2></div><button id="close-settings" class="icon-button" aria-label="Cerrar ajustes">×</button></div>
@@ -65,6 +71,12 @@
         <p id="save-error" class="error" role="status" hidden></p>
       </form>
       <p class="local-note">Tu nombre y ajustes se guardan en este PC.</p>
+      <div class="microphone-settings">
+        <h3>Llámame y aparezco</h3>
+        <label class="check"><input id="wake-enabled" type="checkbox"> Escuchar «oye Miku»</label>
+        <p id="microphone-detail" role="status">Micrófono apagado.</p>
+        <p>Al activarlo, el micrófono escucha también cuando Miku está oculta. El audio se procesa en este PC y no se guarda ni se envía a un servidor. Para detenerlo, apaga la escucha o sal de MikuAI.</p>
+      </div>
       <button id="quit" class="text-button">Salir de MikuAI</button>
     </section>
 
