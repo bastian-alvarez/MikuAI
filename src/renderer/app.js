@@ -1,6 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let settings, audio, audioUrl, speechGeneration = 0, speaking = false, returnFocus;
+let chatHistory = [];
 let expressions = [], expressionRequest = 0;
 let microphoneState = { state: 'off', message: 'Micrófono apagado.' };
 let listeningPreference = false;
@@ -160,6 +161,7 @@ function rangeLabels() {
   $('volume-value').textContent = `${Math.round(Number($('volume').value) * 100)}%`;
 }
 function openSettings() {
+  window.miku.interactive(true).catch(() => {});
   closeHelp(false);
   returnFocus = document.activeElement;
   $('name').value = settings.name;
@@ -168,6 +170,15 @@ function openSettings() {
   $('rate').value = settings.rate;
   $('volume').value = settings.volume;
   $('always-on-top').checked = settings.alwaysOnTop;
+  $('ai-enabled').checked = Boolean(settings.aiEnabled);
+  $('ai-provider').value = settings.aiProvider || 'ollama';
+  $('ollama-url').value = settings.ollamaUrl || '';
+  $('ollama-model').value = settings.ollamaModel || '';
+  $('ai-temperature').value = settings.aiTemperature ?? 0.7;
+  $('ai-temperature-value').textContent = Number($('ai-temperature').value).toFixed(2);
+  $('ai-status').textContent = settings.aiEnabled ? 'IA activada.' : 'IA desactivada.';
+  $('memory-enabled').checked = Boolean(settings.memoryEnabled);
+  loadMemoryUI();
   $('save-error').hidden = true;
   rangeLabels();
   $('settings').hidden = false;
@@ -177,9 +188,11 @@ function openSettings() {
 function closeSettings() {
   $('settings').hidden = true;
   $('settings-button').setAttribute('aria-expanded', 'false');
+  updateInteractive();
   returnFocus?.focus();
 }
 function openHelp() {
+  window.miku.interactive(true).catch(() => {});
   if (!$('settings').hidden) closeSettings();
   returnFocus = document.activeElement;
   $('help').hidden = false;
@@ -189,7 +202,64 @@ function openHelp() {
 function closeHelp(restore = true) {
   $('help').hidden = true;
   $('help-button').setAttribute('aria-expanded', 'false');
+  updateInteractive();
   if (restore) returnFocus?.focus();
+}
+function openChat() {
+  window.miku.interactive(true).catch(() => {});
+  if (!$('settings').hidden) closeSettings();
+  if (!$('help').hidden) closeHelp(false);
+  returnFocus = document.activeElement;
+  $('chat').hidden = false;
+  $('chat-button').setAttribute('aria-expanded', 'true');
+  $('chat-input').focus();
+}
+function closeChat(restore = true) {
+  $('chat').hidden = true;
+  $('chat-button').setAttribute('aria-expanded', 'false');
+  updateInteractive();
+  if (restore) returnFocus?.focus();
+}
+function appendChatMessage(role, text) {
+  const container = $('chat-messages');
+  const item = document.createElement('div');
+  item.className = `chat-message chat-${role}`;
+  const label = document.createElement('strong');
+  label.textContent = role === 'user' ? 'Tú' : 'Miku';
+  const body = document.createElement('p');
+  body.textContent = text;
+  item.append(label, body);
+  container.append(item);
+  container.scrollTop = container.scrollHeight;
+}
+async function loadMemoryUI() {
+  try {
+    const status = await window.miku.memoryStatus();
+    $('memory-status').textContent = status.enabled ? `Memoria activa · ${status.personalCount} recuerdos · ${status.historyCount} mensajes` : 'Memoria desactivada.';
+    const list = await window.miku.memoryList();
+    renderMemoryList(list);
+  } catch {
+    $('memory-status').textContent = 'No pude cargar la memoria.';
+  }
+}
+function renderMemoryList(list) {
+  const ul = $('memory-list');
+  ul.textContent = '';
+  for (const item of list || []) {
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.textContent = item.text;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '×';
+    button.setAttribute('aria-label', `Eliminar recuerdo ${item.text}`);
+    button.addEventListener('click', async () => {
+      await window.miku.memoryRemove(item.id);
+      await loadMemoryUI();
+    });
+    li.append(span, button);
+    ul.append(li);
+  }
 }
 
 window.miku.onSettings(value => {
@@ -246,7 +316,7 @@ $('settings-form').addEventListener('submit', async event => {
   event.preventDefault();
   cancelVoiceTurn();
   try {
-    settings = await window.miku.save({ name: $('name').value, voice: $('voice').value, pitch: Number($('pitch').value), rate: Number($('rate').value), volume: Number($('volume').value), alwaysOnTop: $('always-on-top').checked });
+    settings = await window.miku.save({ name: $('name').value, voice: $('voice').value, pitch: Number($('pitch').value), rate: Number($('rate').value), volume: Number($('volume').value), alwaysOnTop: $('always-on-top').checked, aiEnabled: $('ai-enabled').checked, aiProvider: $('ai-provider').value, ollamaUrl: $('ollama-url').value, ollamaModel: $('ollama-model').value, aiTemperature: Number($('ai-temperature').value), memoryEnabled: $('memory-enabled').checked });
     closeSettings();
     setMessage();
     await speak('welcome');
@@ -264,9 +334,75 @@ $('settings-button').addEventListener('click', openSettings);
 $('close-settings').addEventListener('click', closeSettings);
 $('hide').addEventListener('click', () => window.miku.hide());
 $('quit').addEventListener('click', () => window.miku.quit());
+$('chat-button').addEventListener('click', openChat);
+$('close-chat').addEventListener('click', () => closeChat());
+$('chat-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const input = $('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  appendChatMessage('user', text);
+  input.value = '';
+  $('chat-thinking').hidden = false;
+  $('chat-error').hidden = true;
+  $('chat-send').disabled = true;
+  try {
+    const result = await window.miku.chat(text, chatHistory);
+    if (!result.ok) {
+      $('chat-error').textContent = result.error || 'No pude obtener respuesta.';
+      $('chat-error').hidden = false;
+      return;
+    }
+    appendChatMessage('assistant', result.text);
+    chatHistory.push({ role: 'user', content: text });
+    chatHistory.push({ role: 'assistant', content: result.text });
+    if (chatHistory.length > 16) chatHistory = chatHistory.slice(-16);
+    if (result.expression && settings?.expression !== result.expression) {
+      // Do not persist expression automatically; just reflect in UI via command-like update is not available.
+    }
+  } catch (error) {
+    $('chat-error').textContent = 'Error de conexión con la IA.';
+    $('chat-error').hidden = false;
+  } finally {
+    $('chat-thinking').hidden = true;
+    $('chat-send').disabled = false;
+  }
+});
+$('ai-check').addEventListener('click', async () => {
+  $('ai-status').textContent = 'Guardando y comprobando…';
+  try {
+    settings = await window.miku.save({ aiEnabled: $('ai-enabled').checked, aiProvider: $('ai-provider').value, ollamaUrl: $('ollama-url').value, ollamaModel: $('ollama-model').value, aiTemperature: Number($('ai-temperature').value) });
+    const status = await window.miku.aiStatus();
+    if (status.available) {
+      const models = Array.isArray(status.models) ? status.models.join(', ') : '';
+      $('ai-status').textContent = models ? `Conectado. Modelos: ${models}` : 'Conectado.';
+    } else {
+      $('ai-status').textContent = status.error || 'No se pudo conectar.';
+    }
+  } catch {
+    $('ai-status').textContent = 'Error al comprobar la conexión.';
+  }
+});
+$('memory-enabled').addEventListener('change', async () => {
+  try {
+    settings = await window.miku.memorySetEnabled($('memory-enabled').checked);
+    await loadMemoryUI();
+  } catch { errorMessage('No pude guardar el ajuste de memoria.'); }
+});
+$('memory-clear-personal').addEventListener('click', async () => {
+  if (!confirm('¿Borrar todos los recuerdos personales?')) return;
+  await window.miku.memoryClearPersonal();
+  await loadMemoryUI();
+});
+$('memory-clear-history').addEventListener('click', async () => {
+  if (!confirm('¿Borrar todo el historial de conversaciones?')) return;
+  await window.miku.memoryClearHistory();
+  await loadMemoryUI();
+});
 for (const id of ['pitch', 'rate', 'volume']) $(id).addEventListener('input', rangeLabels);
+$('ai-temperature').addEventListener('input', () => { $('ai-temperature-value').textContent = Number($('ai-temperature').value).toFixed(2); });
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') { if (!$('settings').hidden) closeSettings(); else if (!$('help').hidden) closeHelp(); else window.miku.hide(); }
+  if (event.key === 'Escape') { if (!$('settings').hidden) closeSettings(); else if (!$('help').hidden) closeHelp(); else if (!$('chat').hidden) closeChat(); else window.miku.hide(); }
   const panel = !$('settings').hidden ? $('settings') : !$('help').hidden ? $('help') : null;
   if (event.key === 'Tab' && panel) {
     const controls = [...panel.querySelectorAll('button, input, select')];
@@ -276,13 +412,49 @@ document.addEventListener('keydown', event => {
   }
 });
 let interactive = true;
-document.addEventListener('mousemove', event => {
-  const next = Boolean(event.target.closest('.interactive'));
+let lastMouse = { x: 0, y: 0 };
+let dragging = false;
+function updateInteractive() {
+  if (dragging) {
+    if (!interactive) { interactive = true; window.miku.interactive(true).catch(() => {}); }
+    return;
+  }
+  const target = document.elementFromPoint(lastMouse.x, lastMouse.y);
+  const next = Boolean(target && target.closest('.interactive'));
   if (next !== interactive) { interactive = next; window.miku.interactive(next).catch(() => {}); }
+}
+document.addEventListener('mousemove', event => {
+  lastMouse = { x: event.clientX, y: event.clientY };
+  updateInteractive();
 });
 document.addEventListener('mouseleave', () => {
+  if (dragging) return;
   interactive = false;
   window.miku.interactive(false).catch(() => {});
+});
+const character = $('miku-art')?.closest('.character');
+let dragStart = null;
+if (character) {
+  character.addEventListener('mousedown', async event => {
+    if (event.button !== 0) return;
+    dragging = true;
+    if (!interactive) { interactive = true; window.miku.interactive(true).catch(() => {}); }
+    const bounds = await window.miku.windowBounds();
+    dragStart = { screenX: event.screenX, screenY: event.screenY, x: bounds?.x ?? 0, y: bounds?.y ?? 0 };
+    event.preventDefault();
+  });
+}
+document.addEventListener('mousemove', event => {
+  if (!dragging || !dragStart) return;
+  const x = dragStart.x + (event.screenX - dragStart.screenX);
+  const y = dragStart.y + (event.screenY - dragStart.screenY);
+  window.miku.setWindowPosition(x, y).catch(() => {});
+}, true);
+document.addEventListener('mouseup', () => {
+  if (!dragging) return;
+  dragging = false;
+  dragStart = null;
+  updateInteractive();
 });
 
 async function init() {

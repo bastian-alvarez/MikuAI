@@ -7,6 +7,10 @@ const { pathToFileURL } = require('node:url');
 const { normalizeSettings, greeting, wakeQuestion, loadSettings, saveSettings, visiblePosition } = require('./core.cjs');
 const { WindowsVoice } = require('./voice.cjs');
 const { EXPRESSIONS, EXAMPLES, interpretCommand } = require('./commands.cjs');
+const { createConversationService } = require('./services/conversation.service.cjs');
+const { createOllamaProvider } = require('./services/ai/ollama.provider.cjs');
+const { createCloudProvider } = require('./services/ai/cloud.provider.cjs');
+const { MemoryService } = require('./services/memory/memory.service.cjs');
 const { WakeGate, VoiceCommandWindow } = require('./renderer/wake-logic.js');
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'miku', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
@@ -18,6 +22,8 @@ const size = { width: 400, height: 700 };
 const rendererUrl = 'miku://app/src/renderer/index.html';
 const wakeGate = new WakeGate();
 const voiceTurn = new VoiceCommandWindow();
+let memory = null;
+let conversation = null;
 let microphoneStatus = { state: 'off', message: 'Micrófono apagado.' };
 const dataFile = () => path.join(app.getPath('userData'), 'settings.json');
 const positionFile = () => path.join(app.getPath('userData'), 'position.json');
@@ -40,6 +46,7 @@ function trayMenu() {
 function updateSettings(patch) {
   const next = saveSettings(dataFile(), { ...settings, ...patch });
   settings = next;
+  if (memory && Object.prototype.hasOwnProperty.call(patch, 'memoryEnabled')) memory.setEnabled(settings.memoryEnabled);
   if (!settings.wakeEnabled) voiceTurn.cancel();
   if (settings.muted) voice.cancelSpeech();
   win.setAlwaysOnTop(settings.alwaysOnTop);
@@ -67,6 +74,13 @@ function bind(channel, handler) {
 
 async function createWindow() {
   settings = loadSettings(dataFile());
+  memory = new MemoryService({ dataDir: path.join(app.getPath('userData'), 'memory'), enabled: settings.memoryEnabled });
+  conversation = createConversationService({
+    providerFactory: current => current?.aiProvider === 'cloud'
+      ? createCloudProvider({})
+      : createOllamaProvider({ baseUrl: current?.ollamaUrl, model: current?.ollamaModel }),
+    memory
+  });
   protocol.handle('miku', request => {
     try {
       const url = new URL(request.url);
@@ -147,6 +161,36 @@ async function createWindow() {
     voiceTurn.cancel();
     return executeCommand(input);
   });
+  bind('miku:chat', async (input, history) => {
+    if (!settings.aiEnabled) return { ok: false, error: 'La IA está desactivada. Actívala en Ajustes.' };
+    return conversation.chat(input, settings, Array.isArray(history) ? history : []);
+  });
+  bind('miku:ai-status', async () => {
+    const provider = settings.aiProvider === 'cloud'
+      ? createCloudProvider({})
+      : createOllamaProvider({ baseUrl: settings.ollamaUrl, model: settings.ollamaModel });
+    return provider.isAvailable();
+  });
+  bind('miku:memory-status', () => memory ? memory.stats() : { enabled: false, personalCount: 0, historyCount: 0 });
+  bind('miku:memory-list', () => memory ? memory.getPersonalMemories() : []);
+  bind('miku:memory-add', text => {
+    if (!memory) return { ok: false, error: 'Memoria no disponible.' };
+    if (typeof text !== 'string') return { ok: false, error: 'Texto inválido.' };
+    return memory.addPersonalMemory(text);
+  });
+  bind('miku:memory-remove', id => {
+    if (!memory) return { ok: false, error: 'Memoria no disponible.' };
+    if (typeof id !== 'string') return { ok: false, error: 'Identificador inválido.' };
+    return memory.removePersonalMemory(id);
+  });
+  bind('miku:memory-clear-personal', () => memory ? memory.clearPersonalMemories() : { ok: false, error: 'Memoria no disponible.' });
+  bind('miku:memory-clear-history', () => memory ? memory.clearHistory() : { ok: false, error: 'Memoria no disponible.' });
+  bind('miku:memory-set-enabled', value => {
+    if (!memory) return { ok: false, error: 'Memoria no disponible.' };
+    if (typeof value !== 'boolean') return { ok: false, error: 'Valor inválido.' };
+    memory.setEnabled(value);
+    return updateSettings({ memoryEnabled: value });
+  });
   bind('miku:arm-voice-turn', id => settings.wakeEnabled ? voiceTurn.arm(id) : null);
   bind('miku:end-voice-turn', id => voiceTurn.cancel(id));
   bind('miku:voice-command', (id, input) => {
@@ -176,6 +220,12 @@ async function createWindow() {
     if (typeof interactive !== 'boolean') return;
     win.setIgnoreMouseEvents(!interactive, { forward: true });
   });
+  bind('miku:window-bounds', () => (win && !win.isDestroyed() ? win.getBounds() : null));
+  bind('miku:set-window-position', (x, y) => {
+    if (!win || win.isDestroyed()) return;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    win.setPosition(Math.round(x), Math.round(y));
+  });
   win.once('ready-to-show', show);
   await win.loadURL(rendererUrl);
 }
@@ -185,6 +235,6 @@ else {
   app.on('second-instance', show);
   app.whenReady().then(createWindow).catch(error => { console.error(error); app.quit(); });
   app.on('activate', show);
-  app.on('before-quit', () => { quitting = true; clearTimeout(positionTimer); voice?.dispose(); globalShortcut.unregisterAll(); });
+  app.on('before-quit', () => { quitting = true; clearTimeout(positionTimer); memory?.save(); voice?.dispose(); globalShortcut.unregisterAll(); });
   app.on('window-all-closed', () => app.quit());
 }

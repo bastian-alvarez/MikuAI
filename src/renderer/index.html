@@ -47,6 +47,7 @@
       <button id="greet" class="icon-button" title="Saludar otra vez" aria-label="Saludar otra vez">♪</button>
       <button id="mute" class="icon-button" title="Silenciar voz" aria-label="Silenciar voz" aria-pressed="false">♫</button>
       <button id="help-button" class="icon-button" title="Órdenes y ejemplos" aria-label="Ver órdenes y ejemplos" aria-expanded="false">✎</button>
+  <button id="chat-button" class="icon-button" title="Chat con Miku" aria-label="Abrir chat con Miku" aria-expanded="false">💬</button>
       <button id="settings-button" class="icon-button" title="Ajustes" aria-label="Abrir ajustes" aria-expanded="false">⚙</button>
       <button id="hide" class="icon-button" title="Ocultar Miku" aria-label="Ocultar Miku">−</button>
     </nav>
@@ -81,7 +82,29 @@
         <p>Di «oye Miku», espera mi respuesta y dime una orden. Tienes unos 12 segundos para hablar. Después volveré a esperar la llamada. Puedes decir «cancelar».</p>
         <p>El micrófono escucha también cuando Miku está oculta. El audio se procesa en este PC y no se guarda ni se envía a un servidor. Para detenerlo, apaga la escucha o sal de MikuAI.</p>
       </div>
-      <button id="quit" class="text-button">Salir de MikuAI</button>
+      <div class="microphone-settings">
+    <h3>Compañera con IA</h3>
+    <label class="check"><input id="ai-enabled" type="checkbox"> Activar conversación con IA</label>
+    <label for="ai-provider">Proveedor</label>
+    <select id="ai-provider"><option value="ollama">Ollama (local)</option><option value="cloud">Nube (pendiente)</option></select>
+    <label for="ollama-url">URL de Ollama</label>
+    <input id="ollama-url" type="text" placeholder="http://127.0.0.1:11434">
+    <label for="ollama-model">Modelo</label>
+    <input id="ollama-model" type="text" placeholder="llama3.2">
+    <label for="ai-temperature">Temperatura <output id="ai-temperature-value">0.70</output></label>
+    <input id="ai-temperature" type="range" min="0" max="2" step="0.05">
+    <button id="ai-check" class="text-button" type="button">Comprobar conexión</button>
+    <p id="ai-status" class="field-note" role="status">IA desactivada.</p>
+  </div>
+  <div class="memory-settings">
+    <h3>Memoria</h3>
+    <label class="check"><input id="memory-enabled" type="checkbox"> Activar memoria</label>
+    <p id="memory-status" class="field-note" role="status">Memoria desactivada.</p>
+    <ul id="memory-list" class="memory-list"></ul>
+    <button id="memory-clear-personal" class="text-button" type="button">Borrar recuerdos personales</button>
+    <button id="memory-clear-history" class="text-button" type="button">Borrar historial de conversaciones</button>
+  </div>
+  <button id="quit" class="text-button">Salir de MikuAI</button>
     </section>
 
     <section id="help" class="settings interactive" aria-labelledby="help-title" hidden>
@@ -89,6 +112,19 @@
       <p class="help-intro">Escribe una orden o activa el micrófono y di «oye Miku». Espera mi respuesta y dime lo que necesitas. Toca un ejemplo para editarlo por texto.</p>
       <div id="command-examples" class="command-examples"></div>
       <p class="local-note">Estas órdenes funcionan por texto y por voz, sin conexión.</p>
+    </section>
+
+    <section id="chat" class="settings interactive" aria-labelledby="chat-title" hidden>
+      <div class="settings-header"><div><span class="eyebrow">CONVERSEMOS</span><h2 id="chat-title">Chat con Miku</h2></div><button id="close-chat" class="icon-button" aria-label="Cerrar chat">×</button></div>
+      <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+      <p id="chat-thinking" class="field-note" hidden>Miku está pensando…</p>
+      <p id="chat-error" class="error" role="status" hidden></p>
+      <form id="chat-form" class="command-row">
+        <label class="sr-only" for="chat-input">Mensaje para Miku</label>
+        <input id="chat-input" maxlength="500" placeholder="Escríbele algo a Miku…" autocomplete="off" required>
+        <button id="chat-send" class="primary" type="submit" aria-label="Enviar mensaje">↗</button>
+      </form>
+      <p class="local-note">La conversación usa el proveedor de IA configurado en Ajustes. Sin memoria persistente en esta etapa.</p>
     </section>
   </main>
 </body>

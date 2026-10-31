@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const EXPRESSION_IDS = Object.freeze(['normal', 'shy', 'blush', 'happy', 'surprised', 'pout', 'sleepy']);
-const DEFAULTS = Object.freeze({ name: '', voice: '', pitch: 1.12, rate: 0, volume: 0.8, muted: false, alwaysOnTop: true, expression: 'normal', wakeEnabled: false });
+const DEFAULTS = Object.freeze({ name: '', voice: '', pitch: 1.12, rate: 0, volume: 0.8, muted: false, alwaysOnTop: true, expression: 'normal', wakeEnabled: false, aiEnabled: false, aiProvider: 'ollama', ollamaUrl: 'http://127.0.0.1:11434', ollamaModel: '', aiTemperature: 0.7, memoryEnabled: true });
 
 function normalizeSettings(input = {}) {
   const source = input && typeof input === 'object' ? input : {};
@@ -19,6 +19,12 @@ function normalizeSettings(input = {}) {
     alwaysOnTop: typeof source.alwaysOnTop === 'boolean' ? source.alwaysOnTop : DEFAULTS.alwaysOnTop,
     expression: EXPRESSION_IDS.includes(source.expression) ? source.expression : DEFAULTS.expression,
     wakeEnabled: typeof source.wakeEnabled === 'boolean' ? source.wakeEnabled : false,
+    aiEnabled: typeof source.aiEnabled === 'boolean' ? source.aiEnabled : DEFAULTS.aiEnabled,
+    aiProvider: typeof source.aiProvider === 'string' && ['ollama', 'cloud'].includes(source.aiProvider) ? source.aiProvider : DEFAULTS.aiProvider,
+    ollamaUrl: typeof source.ollamaUrl === 'string' ? source.ollamaUrl.slice(0, 300) : DEFAULTS.ollamaUrl,
+    ollamaModel: typeof source.ollamaModel === 'string' ? source.ollamaModel.slice(0, 100) : DEFAULTS.ollamaModel,
+    aiTemperature: Number.isFinite(source.aiTemperature) ? Math.max(0, Math.min(2, source.aiTemperature)) : DEFAULTS.aiTemperature,
+    memoryEnabled: typeof source.memoryEnabled === 'boolean' ? source.memoryEnabled : DEFAULTS.memoryEnabled,
   };
 }
 

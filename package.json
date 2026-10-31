@@ -14,7 +14,7 @@
     "test:desktop": "electron scripts/check-desktop.cjs",
     "test:listener": "electron scripts/check-listener.cjs",
     "prepare": "node scripts/prepare-speech.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/core.cjs && node --check src/voice.cjs && node --check src/commands.cjs && node --check src/renderer/app.js && node --check src/renderer/listener.js && node --check src/renderer/wake-logic.js",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/core.cjs && node --check src/voice.cjs && node --check src/commands.cjs && node --check src/services/conversation.service.cjs && node --check src/services/ai/ollama.provider.cjs && node --check src/services/ai/cloud.provider.cjs && node --check src/renderer/app.js && node --check src/renderer/listener.js && node --check src/renderer/wake-logic.js",
     "build": "electron-builder --win portable --x64",
     "build:dir": "electron-builder --win dir --x64"
   },
